@@ -17,11 +17,39 @@ import org.json.JSONObject;
 public class Net {
 
     private static final String LOG_TAG = Net.class.getSimpleName();
+    private static Net net;
+    private Context context;
+    private RequestQueue queue;
 
-    public static void signUpRequest(Context context, String nickname, String email, String password,
-                                     OnResponseListener<String> stringResponse) {
+
+    private Net(Context context) {
+        this.context = context;
+        queue = getRequestQueue();
+    }
+
+
+    //getApplicationContext instead activity.context to avoid memory leaks
+    public static synchronized Net getInstance(Context context) {
+        if (net == null) {
+            net = new Net(context.getApplicationContext());
+        }
+        return net;
+    }
+
+    public RequestQueue getRequestQueue() {
+        if (queue == null) {
+            queue = Volley.newRequestQueue(context);
+        }
+        return queue;
+    }
+
+    public <T> void addToRequestQueue(Request<T> request) {
+        getRequestQueue().add(request);
+    }
+
+    public void signUpRequest(String nickname, String email, String password,
+                              OnResponseListener<String> stringResponse) {
         try {
-            RequestQueue queue = Volley.newRequestQueue(context);
             final String url = "http://start.webpower.cf/test/register/";
 
             JSONObject jsonObject = new JSONObject();
@@ -30,7 +58,8 @@ public class Net {
             jsonObject.put("password", password);
 
             StringRequest stringRequest = new StringRequest
-                    (Request.Method.POST, url, response -> stringResponse.onResponse(response), error -> Log.d(LOG_TAG, error.toString())) {
+                    (Request.Method.POST, url, response -> stringResponse.onResponse(response)
+                            , error -> Log.d(LOG_TAG, error.toString())) {
                 @Override
                 protected Response<String> parseNetworkResponse(NetworkResponse response) {
                     String responseString = "";
@@ -40,16 +69,15 @@ public class Net {
                     return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
                 }
             };
-            queue.add(stringRequest);
+            addToRequestQueue(stringRequest);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void signInRequest(Context context, String nickname, String password,
-                                     OnResponseListener<JSONObject> jsonResponse) {
+    public void signInRequest(String nickname, String password,
+                              OnResponseListener<JSONObject> jsonResponse) {
         try {
-            RequestQueue queue = Volley.newRequestQueue(context);
             final String url = "http://start.webpower.cf/test/auth/";
 
             JSONObject jsonObject = new JSONObject();
@@ -60,31 +88,27 @@ public class Net {
                     (Request.Method.POST, url, jsonObject,
                             response -> {
                                 jsonResponse.onResponse(response);
-                                Log.d(LOG_TAG, response.toString());
                             },
-                            error -> Log.d(LOG_TAG, error.toString()));
-            queue.add(jsonObjectRequest);
+                            error -> error.printStackTrace());
+            addToRequestQueue(jsonObjectRequest);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void requestUserData(Context context, OnResponseListener<User> onResponseListener) {
-
+    public void requestUserData(OnResponseListener<User> onResponseListener) {
         User user = new User();
         String url = "http://start.webpower.cf/test/data/";
-        RequestQueue queue = Volley.newRequestQueue(context);
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, response -> {
                     try {
-                        user.fromJson(response);
+                        user.fromJSON(response);
                         onResponseListener.onResponse(user);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }, Throwable::printStackTrace);
-
-        queue.add(jsonObjectRequest);
+        addToRequestQueue(jsonObjectRequest);
     }
 }

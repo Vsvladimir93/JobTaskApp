@@ -33,6 +33,7 @@ public class AuthActivity extends AppCompatActivity {
     @BindView(R.id.user_image)
     ImageView userImage;
 
+    private Net net;
     private SignInDialog signInDialog;
     private SignUpDialog signUpDialog;
 
@@ -41,7 +42,10 @@ public class AuthActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth);
         ButterKnife.bind(this);
+
+        net = Net.getInstance(getApplicationContext());
     }
+
 
     @OnClick({R.id.dial_in_btn, R.id.dial_up_btn})
     public void onClick(Button button) {
@@ -61,7 +65,7 @@ public class AuthActivity extends AppCompatActivity {
 
     private void signIn() {
         if (signInDialog.validateFormSignIn()) {
-            Net.signInRequest(this,
+            net.signInRequest(
                     signInDialog.nameEdtxIn.getText().toString(),
                     signInDialog.passEdtxIn.getText().toString(),
                     response -> {
@@ -73,7 +77,7 @@ public class AuthActivity extends AppCompatActivity {
 
     private void signUp() {
         if (signUpDialog.validateFormSignUp()) {
-            Net.signUpRequest(AuthActivity.this,
+            net.signUpRequest(
                     signUpDialog.nameEdtxUp.getText().toString(),
                     signUpDialog.emailEdtxUp.getText().toString(),
                     signUpDialog.passEdtxUp.getText().toString(),
@@ -87,7 +91,7 @@ public class AuthActivity extends AppCompatActivity {
         try {
             if (jsonObject.getString("error").equals("")) {
                 Toast.makeText(this, jsonObject.getString("success"), Toast.LENGTH_LONG).show();
-                Net.requestUserData(this, new OnResponseListener<User>() {
+                net.requestUserData(new OnResponseListener<User>() {
                     @Override
                     public void onResponse(User user) {
                         fillUserProfile(user);
@@ -104,7 +108,7 @@ public class AuthActivity extends AppCompatActivity {
     private void handleSignUpResponse(String state) {
         if (state.equals("200")) {
             Toast.makeText(this, "Регистрация прошла успешно", Toast.LENGTH_LONG).show();
-            Net.requestUserData(this, new OnResponseListener<User>() {
+            net.requestUserData(new OnResponseListener<User>() {
                 @Override
                 public void onResponse(User response) {
                     fillUserProfile(response);
@@ -116,7 +120,7 @@ public class AuthActivity extends AppCompatActivity {
     }
 
     private void fillUserProfile(User user) {
-        Glide.with(this).load(user.getImageUrl()).into(userImage);
+        Glide.with(userImage).load(user.getImageUrl()).into(userImage);
         userName.setText(user.getName());
         userEmail.setText(user.getEmail());
         userActivity.setText(user.getActivity());

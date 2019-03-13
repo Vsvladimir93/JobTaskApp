@@ -10,13 +10,27 @@ public class User {
     private String email;
     private String imageUrl;
 
-    public void fromJson(JSONObject jsonObject){
+    public User(){}
+
+    public User(JSONObject jsonUser){
         try {
-        name = jsonObject.getString("name");
-        activity = jsonObject.getString("activity");
-        age = jsonObject.getString("age");
-        email = jsonObject.getString("e-mail");
-        imageUrl = jsonObject.getString("image");
+            name = jsonUser.getString("name");
+            activity = jsonUser.getString("activity");
+            age = jsonUser.getString("age");
+            email = jsonUser.getString("e-mail");
+            imageUrl = jsonUser.getString("image");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void fromJSON(JSONObject jsonUser){
+        try {
+            name = jsonUser.getString("name");
+            activity = jsonUser.getString("activity");
+            age = jsonUser.getString("age");
+            email = jsonUser.getString("e-mail");
+            imageUrl = jsonUser.getString("image");
         } catch (Exception e) {
             e.printStackTrace();
         }
