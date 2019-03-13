@@ -116,7 +116,7 @@ public class AuthActivity extends AppCompatActivity {
     }
 
     private void fillUserProfile(User user) {
-        Glide.with(this).load(user.getImageUrl()).into(userImage);
+        Glide.with(userImage).load(user.getImageUrl()).into(userImage);
         userName.setText(user.getName());
         userEmail.setText(user.getEmail());
         userActivity.setText(user.getActivity());
