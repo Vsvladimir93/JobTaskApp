@@ -1,40 +1,21 @@
 package com.experience.jobtaskapp;
 
+import com.google.gson.annotations.SerializedName;
+
 import org.json.JSONObject;
 
 public class User {
 
+    @SerializedName("name")
     private String name;
+    @SerializedName("activity")
     private String activity;
+    @SerializedName("age")
     private String age;
+    @SerializedName("e-mail")
     private String email;
+    @SerializedName("image")
     private String imageUrl;
-
-    public User(){}
-
-    public User(JSONObject jsonUser){
-        try {
-            name = jsonUser.getString("name");
-            activity = jsonUser.getString("activity");
-            age = jsonUser.getString("age");
-            email = jsonUser.getString("e-mail");
-            imageUrl = jsonUser.getString("image");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void fromJSON(JSONObject jsonUser){
-        try {
-            name = jsonUser.getString("name");
-            activity = jsonUser.getString("activity");
-            age = jsonUser.getString("age");
-            email = jsonUser.getString("e-mail");
-            imageUrl = jsonUser.getString("image");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public String getName() {
         return name;

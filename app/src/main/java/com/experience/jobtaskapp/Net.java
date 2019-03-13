@@ -3,6 +3,7 @@ package com.experience.jobtaskapp;
 import android.content.Context;
 import android.util.Log;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -11,8 +12,12 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
 
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Net {
 
@@ -20,13 +25,13 @@ public class Net {
     private static Net net;
     private Context context;
     private RequestQueue queue;
-
+    private Gson gson;
 
     private Net(Context context) {
         this.context = context;
         queue = getRequestQueue();
+        gson = new Gson();
     }
-
 
     //getApplicationContext instead activity.context to avoid memory leaks
     public static synchronized Net getInstance(Context context) {
@@ -36,30 +41,26 @@ public class Net {
         return net;
     }
 
-    public RequestQueue getRequestQueue() {
+    private RequestQueue getRequestQueue() {
         if (queue == null) {
             queue = Volley.newRequestQueue(context);
         }
         return queue;
     }
 
-    public <T> void addToRequestQueue(Request<T> request) {
+    private <T> void addToRequestQueue(Request<T> request) {
         getRequestQueue().add(request);
     }
 
     public void signUpRequest(String nickname, String email, String password,
                               OnResponseListener<String> stringResponse) {
         try {
-            final String url = "http://start.webpower.cf/test/register/";
 
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("nickname", nickname);
-            jsonObject.put("e-mail", email);
-            jsonObject.put("password", password);
+            final String url = BuildConfig.ENDPOINT + "/test/register/";
 
             StringRequest stringRequest = new StringRequest
-                    (Request.Method.POST, url, response -> stringResponse.onResponse(response)
-                            , error -> Log.d(LOG_TAG, error.toString())) {
+                    (Request.Method.POST, url, stringResponse::onResponse,
+                            error -> Log.d(LOG_TAG, error.toString())) {
                 @Override
                 protected Response<String> parseNetworkResponse(NetworkResponse response) {
                     String responseString = "";
@@ -67,6 +68,15 @@ public class Net {
                         responseString = String.valueOf(response.statusCode);
                     }
                     return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
+                }
+
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("nickname", nickname);
+                    params.put("e-mail", email);
+                    params.put("password", password);
+                    return params;
                 }
             };
             addToRequestQueue(stringRequest);
@@ -78,7 +88,7 @@ public class Net {
     public void signInRequest(String nickname, String password,
                               OnResponseListener<JSONObject> jsonResponse) {
         try {
-            final String url = "http://start.webpower.cf/test/auth/";
+            final String url = BuildConfig.ENDPOINT + "/test/auth/";
 
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("nickname", nickname);
@@ -97,17 +107,11 @@ public class Net {
     }
 
     public void requestUserData(OnResponseListener<User> onResponseListener) {
-        User user = new User();
-        String url = "http://start.webpower.cf/test/data/";
+        String url = BuildConfig.ENDPOINT + "/test/data/";
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
                 (Request.Method.GET, url, null, response -> {
-                    try {
-                        user.fromJSON(response);
-                        onResponseListener.onResponse(user);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    onResponseListener.onResponse(gson.fromJson(response.toString(), User.class));
                 }, Throwable::printStackTrace);
         addToRequestQueue(jsonObjectRequest);
     }

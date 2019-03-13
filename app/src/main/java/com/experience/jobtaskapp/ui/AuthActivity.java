@@ -10,7 +10,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.experience.jobtaskapp.Net;
-import com.experience.jobtaskapp.OnResponseListener;
 import com.experience.jobtaskapp.R;
 import com.experience.jobtaskapp.User;
 import org.json.JSONObject;
@@ -68,9 +67,7 @@ public class AuthActivity extends AppCompatActivity {
             net.signInRequest(
                     signInDialog.nameEdtxIn.getText().toString(),
                     signInDialog.passEdtxIn.getText().toString(),
-                    response -> {
-                        handleSignInResponse(response);
-                    });
+                    this::handleSignInResponse);
             signInDialog.hide();
         }
     }
@@ -81,7 +78,7 @@ public class AuthActivity extends AppCompatActivity {
                     signUpDialog.nameEdtxUp.getText().toString(),
                     signUpDialog.emailEdtxUp.getText().toString(),
                     signUpDialog.passEdtxUp.getText().toString(),
-                    response -> handleSignUpResponse(response)
+                    this::handleSignUpResponse
             );
             signUpDialog.hide();
         }
@@ -91,12 +88,7 @@ public class AuthActivity extends AppCompatActivity {
         try {
             if (jsonObject.getString("error").equals("")) {
                 Toast.makeText(this, jsonObject.getString("success"), Toast.LENGTH_LONG).show();
-                net.requestUserData(new OnResponseListener<User>() {
-                    @Override
-                    public void onResponse(User user) {
-                        fillUserProfile(user);
-                    }
-                });
+                net.requestUserData(this::fillUserProfile);
             } else {
                 Toast.makeText(this, jsonObject.getString("error"), Toast.LENGTH_LONG).show();
             }
@@ -108,12 +100,7 @@ public class AuthActivity extends AppCompatActivity {
     private void handleSignUpResponse(String state) {
         if (state.equals("200")) {
             Toast.makeText(this, "Регистрация прошла успешно", Toast.LENGTH_LONG).show();
-            net.requestUserData(new OnResponseListener<User>() {
-                @Override
-                public void onResponse(User response) {
-                    fillUserProfile(response);
-                }
-            });
+            net.requestUserData(this::fillUserProfile);
         } else {
             Toast.makeText(this, "Ошибка регистрации", Toast.LENGTH_LONG).show();
         }
